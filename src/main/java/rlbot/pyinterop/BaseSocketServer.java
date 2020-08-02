@@ -29,14 +29,18 @@ public abstract class BaseSocketServer implements PythonInterface {
                 try (Socket clientSocket = serverSocket.accept()) {
                     byte[] buffer = new byte[clientSocket.getReceiveBufferSize()];
                     int bytes = clientSocket.getInputStream().read(buffer);
-                    String request = new String(buffer, 0, bytes);
-                    Command command = parseCommand(request);
-                    if (command.action == Command.Action.ADD) {
-                        ensureStarted(command.dllDirectory);
-                        ensureBotRegistered(command.index, command.name, command.team);
-                    } else if (command.action == Command.Action.REMOVE) {
-                        retireBot(command.index);
+                    if (bytes > 0) {
+                        String request = new String(buffer, 0, bytes);
+                        Command command = parseCommand(request);
+                        if (command.action == Command.Action.ADD) {
+                            ensureStarted(command.dllDirectory);
+                            ensureBotRegistered(command.index, command.name, command.team);
+                        } else if (command.action == Command.Action.REMOVE) {
+                            retireBot(command.index);
+                        }
                     }
+                } catch (final Exception e) {
+                    e.printStackTrace();
                 }
             }
         } catch (IOException e) {
